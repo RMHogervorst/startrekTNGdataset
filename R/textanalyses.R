@@ -86,10 +86,12 @@ sample <- sample[-grep("STAR TREK: ", sample)]    # remove the headers within th
 ### Take a substring of that to collect the number
 ### also take the line number
 actdetails<- data.frame( 
-        names = grep("^[0-9]{1,3}[:space:]*[A-Z]*"   ,sample, value = TRUE), 
+        names = grep("^[0-9]{1,3}[:space:]*[A-Z]*"   ,sample, value = TRUE),
         scenenumber = substr(grep("^[0-9]{1,3}[:space:]*[A-Z]*" ,sample, value = TRUE),1,3),
-        number = grep("^[0-9]{1,3}[:space:]*[A-Z]*"   ,sample)
-)
+        number = grep("^[0-9]{1,3}[:space:]*[A-Z]*"   ,sample),
+stringsAsFactors = FALSE)   # seriously... a data frame standard makes characters into
+# factors it took me a while to figure out what happened.
+
 ### Add a variable ACT, based on the linenumber of the line that says END of
 ### 
 actdetails$act <- ifelse(actdetails$number < grep("END OF TEASER", sample), "TEASER",
@@ -123,9 +125,9 @@ actdetails$act[is.na(actdetails$act)] <- ifelse("EIGHT" %in% unique(actdetails$a
 # function select text from linenumber 1 to endnumber 1
 # ends in dataframe?
 # 
-select_text<-function(text = sample, start, end) {
-        text[start:end]
-}
+# select_text<-function(text = sample, start, end) {
+#         text[start:end]
+# }
 
 # text <- vector(mode = "character", length = length(startnumbers))
 # title <- vector(mode = "character", length = length(startnumbers))
@@ -272,15 +274,15 @@ scriptdataframe$endline <- ifelse(scriptdataframe$linenumber %in% endspeech, "sp
 # 
 length(which(scriptdataframe$classifier == "whosays"))
 length(which(scriptdataframe$endline == "speechend"))
-i <-5
+
 scriptdataframe$partnumber <- NA
-count <-1
-for (i in length(scriptdataframe$linenumber)){
+counter <-1
+for (i in 2:length(scriptdataframe$linenumber)){
         
         if(scriptdataframe$classifier[i-1]== "empty line" &
            scriptdataframe$classifier[i] == "description" &
            is.na(scriptdataframe$endline[i]) ){
-                scriptdataframe$partnumber[i]<- counter     
+                scriptdataframe$partnumber[i] <- counter     
         }else if(scriptdataframe$classifier[i-1]== "empty line" &
                  scriptdataframe$classifier[i] == "description" &
                  !is.na(scriptdataframe$endline[i]) ){
@@ -306,58 +308,45 @@ for (i in length(scriptdataframe$linenumber)){
                 scriptdataframe$partnumber[i]<- counter
         }else if(scriptdataframe$classifier[i-1] == "whosays" &
                  scriptdataframe$classifier[i] == "speech" &
-                 is.na(scriptdataframe$endline[i]){
+                 is.na(scriptdataframe$endline[i])){
                          scriptdataframe$partnumber[i]<- counter  
         }else if(scriptdataframe$classifier[i-1] == "whosays" &
                  scriptdataframe$classifier[i] == "speech" &
-                 !is.na(scriptdataframe$endline[i]){
+                 !is.na(scriptdataframe$endline[i])){
                          scriptdataframe$partnumber[i]<- counter 
                          counter <- counter + 1                         #
         }else if(scriptdataframe$classifier[i-1] == "speech" &
                  scriptdataframe$classifier[i] == "speech" &
-                 is.na(scriptdataframe$endline[i]){
+                 is.na(scriptdataframe$endline[i])){
                          scriptdataframe$partnumber[i]<- counter       
         }else if(scriptdataframe$classifier[i-1] == "speech" &
                  scriptdataframe$classifier[i] == "speech" &
-                 !is.na(scriptdataframe$endline[i]){
+                 !is.na(scriptdataframe$endline[i])){
                          scriptdataframe$partnumber[i]<- counter 
                          counter <- counter + 1                         #
         }else if(scriptdataframe$classifier[i-1] == "whosays" &
                  scriptdataframe$classifier[i] == "speech_description" &
-                 !is.na(scriptdataframe$endline[i]){
+                 !is.na(scriptdataframe$endline[i])){
                                   scriptdataframe$partnumber[i]<- counter 
                                   counter <- counter + 1                         #
         }else if(scriptdataframe$classifier[i-1] == "whosays" &
                  scriptdataframe$classifier[i] == "speech_description" &
-                 is.na(scriptdataframe$endline[i]){
+                 is.na(scriptdataframe$endline[i])){
                          scriptdataframe$partnumber[i]<- counter  
         }else if(scriptdataframe$classifier[i-1] == "speech_description" &
                  scriptdataframe$classifier[i] == "speech" &
-                 !is.na(scriptdataframe$endline[i]){
+                 !is.na(scriptdataframe$endline[i])){
                          scriptdataframe$partnumber[i]<- counter 
                          counter <- counter + 1
         }else if(scriptdataframe$classifier[i-1] == "speech_description" &
                  scriptdataframe$classifier[i] == "speech" &
-                 is.na(scriptdataframe$endline[i]){
+                 is.na(scriptdataframe$endline[i])){
                          scriptdataframe$partnumber[i]<- counter
+        }else if(scriptdataframe$classifier[i]== "THE END") {
+                scriptdataframe$partnumber[i]<- NA
         }
-                
-                  
-        # 
-        # 
-        # if(identical(scriptdataframe$classifier[i-1], character(0))){
-        #         scriptdataframe$partnumber[i] <- 1 
-        # }else if(scriptdataframe$classifier[i-1]== "scenedetails" &
-        #          is.na(scriptdataframe$endline[i])){
-        #         scriptdataframe$partnumber[i] <- scriptdataframe$partnumber[i-1]
-        # }else if(is.na(scriptdataframe$endline[i]) & 
-        #                is.na(!scriptdataframe$partnumber[i-1])){
-        #         scriptdataframe$partnumber[i] <- scriptdataframe$partnumber[i-1]
-        # }else if(!is.na(scriptdataframe$endline[i]) & 
-        #          !is.na(scriptdataframe$partnumber[i-1])){
-        #         scriptdataframe$partnumber[i] <- scriptdataframe$partnumber[i-1]
-        # }else if()
-}
+               
+       }
 
 # perhaps only some logic with description and is.na(endline) partnumber
 # if bot description and endline, at to the counter below.
@@ -374,17 +363,26 @@ for (i in length(scriptdataframe$linenumber)){
 # }
 # 
 #extract description untill descriptionend.
-length(which(scriptdataframe$classifier == "description"))
-length(which(scriptdataframe$endline == "descriptionend"))
+# length(which(scriptdataframe$classifier == "description"))
+# length(which(scriptdataframe$endline == "descriptionend"))
 
 # something with the values
 # TITLE, SETNAMES, CHARNAMES, PRODNUM
 
+# add actdetails to data frame. actdetails$number 
 
-
+suppressMessages(library(dplyr)) 
+script <-  left_join(scriptdataframe, actdetails, by = c("linenumber"="number", "text"="names"))
 ###
-
-
+k <-2
+for (k in 2:nrow(script)) {
+        if(!is.na(script$scenenumber[k-1]) &
+           is.na(script$scenenumber[k])){
+                script$scenenumber[k] <- script$scenenumber[k-1]
+                script$act[k] <- script$act[k-1]
+        }
+        
+}
 
 gsub("[\r\n]", "", x)
 
