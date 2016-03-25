@@ -270,13 +270,16 @@ scriptdataframe$endline <- ifelse(scriptdataframe$linenumber %in% endspeech, "sp
                                   ifelse(scriptdataframe$linenumber %in% enddescription, "descriptionend",
                                          NA))
 ### extract from whosays +1 till speechend
-
-# 
-length(which(scriptdataframe$classifier == "whosays"))
-length(which(scriptdataframe$endline == "speechend"))
-
-scriptdataframe$partnumber <- NA
-counter <-1
+## the following script loops through all rows and checks the row above and 
+## itself. if it is empty it will copy the counter value.
+## if the the line is not empty it will copy the counter and add 1 to
+## the number. 
+## This is a very bulky script that is slow as hell.
+## There must be a vectorized operation using ifelse of some other
+## computation, that would be much faster. But i don't know how.
+## 
+scriptdataframe$partnumber <- NA # create the vector / column first
+counter <-1   
 for (i in 2:length(scriptdataframe$linenumber)){
         
         if(scriptdataframe$classifier[i-1]== "empty line" &
@@ -342,38 +345,20 @@ for (i in 2:length(scriptdataframe$linenumber)){
                  scriptdataframe$classifier[i] == "speech" &
                  is.na(scriptdataframe$endline[i])){
                          scriptdataframe$partnumber[i]<- counter
-        }else if(scriptdataframe$classifier[i]== "THE END") {
+        }else if(scriptdataframe$classifier[i]== "THE END") { # this one doesn't work
                 scriptdataframe$partnumber[i]<- NA
         }
                
        }
-
-# perhaps only some logic with description and is.na(endline) partnumber
-# if bot description and endline, at to the counter below.
-# if emptyline scenedetails keep goin with numbering
-# 
-# or empty line above, description add number 
-# description and endline means nothing
-# empty line 
-# 
-# or with counter 
-# count <- 0
-# for (val in x) {
-#        if(val %% 2 == 0)  count = count+1
-# }
-# 
-#extract description untill descriptionend.
-# length(which(scriptdataframe$classifier == "description"))
-# length(which(scriptdataframe$endline == "descriptionend"))
-
-# something with the values
-# TITLE, SETNAMES, CHARNAMES, PRODNUM
-
-# add actdetails to data frame. actdetails$number 
-
+script$scenenumber[grep(" THE END", script$text)]<-NA
+### Join the two data frames together
 suppressMessages(library(dplyr)) 
 script <-  left_join(scriptdataframe, actdetails, by = c("linenumber"="number", "text"="names"))
 ###
+rm(scriptdataframe, actdetails) # remove the parent data frames
+
+### Another loop with the same logic as before. look above and at
+### self, if self empty copy the value above.
 k <-2
 for (k in 2:nrow(script)) {
         if(!is.na(script$scenenumber[k-1]) &
@@ -384,5 +369,36 @@ for (k in 2:nrow(script)) {
         
 }
 
-gsub("[\r\n]", "", x)
+library(tidyr)
+# needs to look like this
+# TITLE, PRODNUM, number, act, scenenumber, partnumber, type (discription or speech),
+# Whosays (only in speech), text (combining multiple rows), speechdescription yes no, 
+# 
 
+
+# something with the values
+# TITLE, SETNAMES, CHARNAMES, PRODNUM
+# 
+# extrecting info for final data frame ####
+suppressMessages(library(magrittr))
+extract_parts <- function(number){
+   script %>% 
+           filter(partnumber == number) %$% 
+           gsub(" {2,}"," ", gsub("\t"," ", paste(unlist(text),collapse = " ")))
+}
+extract_all <- function(vector) {
+        for (i in vector) {
+                extract_parts(i)
+}
+        
+        
+}
+extract_parts(999)
+
+test1<-script %>% filter(partnumber == 2)
+who <- gsub(" {1,}"," ", gsub("\t"," ", paste(test1$text[test1$classifier == "whosays"], collapse = " ")))
+if(who == "") who <- NA        
+text <- if(sum(test1$classifier %in% "description") >=1){
+        gsub(" {2,}"," ", gsub("\t"," ", paste(unlist(test1$text),collapse = " ")))
+}else if(sum(test1$classifier %in% "description") >=1)
+rm(test1)
