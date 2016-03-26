@@ -1,0 +1,19 @@
+275, 268, 246, 243, 241, 240, 183
+275 werkt   (tekst aangepast, scripts aangepast)
+"268 in part 376" fixed
+246  "246 in part 467" was eer tekst
+
+
+243  243 in part 125 fixed. was geen tekst maar wanneer tekst over twee 
+regels staat met witregel ertussen snapt ie het niet meer.
+
+241 werktn ook
+240 Error in startcast:endcast : argument of length 0 
+er zit geen sets in dit script
+aangepast nummering.
+
+source the script and apply the function star_trek_combine(102:277)
+warning in 183
+Total time to combine all dataframes, meaning creating dataframes 
+putting it into a list and finally combining everything into a datatable:
+8 minutes and 6 seconds.
