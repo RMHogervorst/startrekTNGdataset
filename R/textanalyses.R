@@ -61,33 +61,35 @@ star_trek_episode <- function(number, dir = "data-raw", trace = FALSE){
 ### setting bounderies for where the cast is described
 ### 
 startcast <- grep("  CAST   ", sample)+1
-endcast<- grep(" - SETS", sample)-1
-# skip if no cast 
-# or if no sets
-if(length(startcast) >0){
 startsets<-grep(" {5,}SETS ", sample) +4    # this matches the sets part and
 # skips the interior and exterior parts
-if(length(endcast)== 0){endcast<- startsets}        
-
+endcast<- grep(" - SETS", sample)-1
 endsets <- (grep("TEASER          [0-9]{,2}", sample) -2 )[[1]]
-
-### replace occuronce of space, tab, newline, 
-# carriage return, vertical tab, form feed with a space
-# in the part of the script[] between cast and sets
-CHARNAMES <- paste(gsub("[\t\n\r\v\f]{5,}", " ", sample[startcast:endcast] ), collapse = " ")
-CHARNAMES <- gsub(" {5,}", ",",CHARNAMES)    # replace 5 spaces or more {5,} with a comma
-CHARNAMES <- gsub("^,", "", CHARNAMES) # replace comma at start of sentence
-CHARNAMES <- gsub(",$", "", CHARNAMES)  # replace comma at end of sentance
-
-### Identical procedure  (could probably build this into a function...)
-SETNAMES <- paste(gsub("[\t\n\r\v\f]{5,}", " ", sample[startsets:endsets] ), collapse = " ")
-SETNAMES <- gsub(" {5,}", ",",SETNAMES)    # replace 5 spaces or more {5,} with a comma
-SETNAMES <- gsub("^,", "", SETNAMES) # replace comma at start of sentence
-SETNAMES <- gsub(",$", "", SETNAMES)  # replace comma at end of sentance
-} else {
+if(length(startcast) == 0){
         CHARNAMES <- NA
         SETNAMES <- NA
-}
+}else  if(length(startsets)==0 & length(endcast)== 0){
+        CHARNAMES <- NA
+        SETNAMES <- NA
+}else if(length(startsets)> 0 & length(endcast)== 0){
+        endcast<- startsets
+        SETNAMES <- NA
+        CHARNAMES <- paste(gsub("[\t\n\r\v\f]{5,}", " ", sample[startcast:endcast] ), collapse = " ")
+        CHARNAMES <- gsub(" {5,}", ",",CHARNAMES)    # replace 5 spaces or more {5,} with a comma
+        CHARNAMES <- gsub("^,", "", CHARNAMES) # replace comma at start of sentence
+        CHARNAMES <- gsub(",$", "", CHARNAMES)  # replace comma at end of sentance
+}else{
+        CHARNAMES <- paste(gsub("[\t\n\r\v\f]{5,}", " ", sample[startcast:endcast] ), collapse = " ")
+        CHARNAMES <- gsub(" {5,}", ",",CHARNAMES)    # replace 5 spaces or more {5,} with a comma
+        CHARNAMES <- gsub("^,", "", CHARNAMES) # replace comma at start of sentence
+        CHARNAMES <- gsub(",$", "", CHARNAMES)  # replace comma at end of sentance
+        ###  (could probably build this into a function...)
+        SETNAMES <- paste(gsub("[\t\n\r\v\f]{5,}", " ", sample[startsets:endsets] ), collapse = " ")
+        SETNAMES <- gsub(" {5,}", ",",SETNAMES)    # replace 5 spaces or more {5,} with a comma
+        SETNAMES <- gsub("^,", "", SETNAMES) # replace comma at start of sentence
+        SETNAMES <- gsub(",$", "", SETNAMES)  # replace comma at end of sentance
+} 
+
 ### pull some other information out of the script
 TITLE <- grep("\"*\"", sample[1:20], value = TRUE)[1]  # find anything with quotation marks
 TITLE <- gsub("^ *\"", "", TITLE)  # remove start line any  number of spaces and a "
@@ -103,38 +105,7 @@ if(length(PRODNUM)== 0) PRODNUM <- NA
 sample <- sample[-grep("STAR TREK: ", sample)]    # remove the headers within the 
 # document, I'm not interested in the page number
 
-# head(sample[50:30]) 
-# sample2<-scan("data-raw/150.txt", character(0), sep = "\n", fileEncoding = "UTF-8")
-
-# 
-#library(stringr)
-# sum(grepl("captain", sample))
-# ?stringr
-
-# regexp start line with number 1[spaces]caps
-#grepl("^[0-7]{1,3}[:space:]{3,4}[A-Z]*", sample )
-#grepl("^[0-7][:space:]", sample )
-# this count the number of scenes ####
-#grep("^[0-7]{1,3}[:space:]*[A-Z]*"   ,sample)  # matches starting with a number 
-# spaces caps. which is all the scenes.
-# list from [number <number]
-
-# delete lines that are like this
-#           STAR TREK: "Evolution" - 7/24/89 - TEASER          1.
-#     spaces STAR TREK: anything data ending in number dot endline
-# find scenes within acts
-# grep("TEASER", sample)
-# grep("END OF TEASER", sample)
-# grep("   ACT ONE   ", sample)
-# grep("   ACT TWO   ", sample, value = TRUE)
-# grep("   ACT THREE   ", sample, value = TRUE)
-# grep("   ACT FOUR   ", sample, value = TRUE)
-# grep("   ACT FIVE   ", sample, value = TRUE)
-# grep("   ACT SIX   ", sample, value = TRUE)
-# grep("END OF ACT", sample, value = TRUE)
-# grep("THE END", sample, value = TRUE)
-
-### create a data frame with act details
+### create a data frame with act details  ######
 ### Select lines which start with 1-3 numbers, any number of spaces followed
 ### by any number of CAPS.
 ### 
@@ -208,111 +179,8 @@ actdetails$act[is.na(actdetails$act)] <- ifelse("EIGHT" %in% unique(actdetails$a
 
 
 
-# functions ####
-# function select text from linenumber 1 to endnumber 1
-# ends in dataframe?
-# 
-# select_text<-function(text = sample, start, end) {
-#         text[start:end]
-# }
 
-# text <- vector(mode = "character", length = length(startnumbers))
-# title <- vector(mode = "character", length = length(startnumbers))
-# scenenumber <- vector(mode = "character", length = length(startnumbers))
-# place <- vector(mode = "character", length = length(startnumbers))
-# 
-# for(i in startnumbers) {
-#         text[i] <- sample[startnumbers[i]: endnumbers[i]]
-#         title[i] <- text[1]
-#         scenenumber[i] <- substr(grep("^[0-7]{1,3}[:space:]*[A-Z]*" ,text, value = TRUE),1,3) # scene number
-#         place[i] <- ifelse(grepl("INT.",title), "INT",
-#                         ifelse(grepl("EXT.",title), "EXT", 
-#                                ifelse( grepl("CONTINUED:", title), "CONTINUED",  "OTHER")))
-#         
-#         
-# }
-#title <- select_text(sample, startnumbers[3], endnumbers[3]) [1]
-
-
-# detecting scene description
-
-# linecounter <- ifelse( is.na(descriptionvector[2]-descriptionvector[1]), NA,
-#                ifelse(descriptionvector[2]-descriptionvector[1] == 1, 2 ,
-#                ifelse(descriptionvector[3]-descriptionvector[2]== 1 ,3,
-#                ifelse(descriptionvector[4]-descriptionvector[3]== 1, 4,
-#                ifelse(descriptionvector[5]-descriptionvector[4]== 1, 5, 
-#                ifelse(descriptionvector[6]-descriptionvector[5]== 1, 6,
-#                ifelse(descriptionvector[7]-descriptionvector[6]== 1, 7,
-#                ifelse(descriptionvector[8]-descriptionvector[7]== 1, 8,
-#                ifelse(descriptionvector[9]-descriptionvector[8]== 1, 9, 
-#                ifelse(descriptionvector[10]-descriptionvector[9]== 1, 10, 
-#                ifelse(descriptionvector[11]-descriptionvector[10]== 1, 11, 
-#                       99)      
-#                                  ))))))))))
-# freetext <- paste(gsub("[\r\n\t]", "", text[descriptionvector[1:linecounter]]), collapse = " ")
-
-# if(length(descriptionvector)> linecounter) {
-#    left<- descriptionvector[linecounter:length(descriptionvector)]
-#    linecounter <- ifelse( is.na(left[2]-left[1]), NA,
-#                   ifelse(left[2]-left[1] == 1, 2 ,
-#                 ifelse(left[3]-left[2]== 1 ,3,
-#                 ifelse(left[4]-left[3]== 1, 4,
-#                 ifelse(left[5]-left[3]== 1, 5, 99)
-#                 ))))
-#}
-# if(linecounter ==99)stop("more then 11 lines")
-
-#freetext2 <- paste(gsub("[\r\n\t]", "", text[left[1:linecounter]]), collapse = " ")
-
-
-
-
-#paste(gsub("[\r\n\t]", "", text[voicevec]))
-# \t\t\t\t\t who says   voicevec
-# \t\t\t what is said   speech vec
-#  ""                   emptylinevec
-#  aaneensluitende nummers in vector samennemen. 
-## speechextraction ###
-# length(voicevec) # loop through?
-# length(speech_descr)  # hoeveel descr zijn er?
-# overal waar whitespace volgt op speech
-# for (i in voicevec) {
-#         
-# }
-# i <- 1
-# speechdescription <- FALSE
-# voicevec[i]
-# #voicevec[1] +1
-# if (voicevec[i] +1 == speech_descr[i]) speechdescription <- TRUE  # extra marking
-# # vind opeenvolgende nummer in speechvec
-# speechvec[i]  # start
-# endspeech[i] # einde
-# subspeech <- text[speechvec[i]:endspeech[i]]
-# i <- which(speechvec > endspeech[i])[1] # set counter to next part?
-# # doesn't work because there are multiple speech vectors, but part end vectors.
-# # Better to extract vectors before hand and execute everyting at once.
-# startspeechvec <- vector(mode = "integer", length = length(endspeech))
-# for (i in speechvec) {
-#         if(speechvec[i+1]-speechvec[i] != 1){append(startspeechvec, i)} 
-#         
-# }
-
-# per file
-# extract scenes, 
-# per scene:
-#  number, location, etc
-#  als location continues, use previous.
-#  title
-#  description texts
-#  dialogues
-#  
-
-# per row  season, episode, act, total number of scenes, scene number, subnumber, 
-# type (scene description, voice), who says (empty in description), text
-# 
-# 
-# 
-###  data frame method ####
+###  data frame of scriptdataframe ####
 ### create a bunch of linenumbers based on the characteristics of line
 ###  
 startnumbers<-grep("^[0-9]{1,3}[:space:]*",sample)  # starts with number thus start of scene
@@ -334,6 +202,9 @@ final_line <- grep("THE END", sample)
 if(length(final_line)==0){
         final_line <- length(sample)
 }
+
+### KILLER ROBOT  #####
+
 if(length(startnumbers)==0){
         episode <-data.frame( 
                 episode = TITLE,
@@ -471,8 +342,12 @@ for (i in 2:length(scriptdataframe$linenumber)){
                 scriptdataframe$partnumber[i]<- counter  
         }else if(scriptdataframe$classifier[i-1] == "description" &
                           scriptdataframe$classifier[i+1] == "description" &
-                          is.na(scriptdataframe$endline[i])){
+                          is.na(scriptdataframe$endline[i]) &
+                 scriptdataframe$classifier[[i]] != "empty line"){
                 scriptdataframe$partnumber[i]<- counter 
+        }else if(scriptdataframe$classifier[i-1] == "empty line" &
+                 scriptdataframe$classifier[i] == "speech"){
+                scriptdataframe$partnumber[i]<- counter
         }
                
        }
@@ -535,11 +410,10 @@ for (i in 1:df_length) { # every i is a partnumber
         if(who == "") who <- NA 
         episode$who[i]<-who
         replacementtext <- gsub(" {2,}"," ", gsub("\t"," ", paste(unlist(extractedtext$text[which(extractedtext$classifier == "description")]),collapse = " ")))
-        if(length(replacementtext)==0 ){replacementtext <- "No text ERROR"} 
+        if(length(replacementtext)==0 ){replacementtext <- "No text ERROR"} ## This does nothing
         episode$text[i]<- if(sum(extractedtext$classifier == "description") >=1){
                 replacementtext
-        }else if(sum(extractedtext$classifier == "speech") >=1 &
-                 !is.na(who)){
+        }else if(sum(extractedtext$classifier == "speech") >=1 ){
                 gsub(" {1,}"," ", gsub("\t"," ", paste(unlist(
                         extractedtext$text[which(extractedtext$classifier == "speech")]) ,collapse = ""))) 
         }
