@@ -56,6 +56,7 @@ There is no description how Worf says this.
 I haven't checked everything and I had some errors during the construction, 
 so some scripts are not complete
 and some parts are perhaps wrongly classified as speech or description.
+But come on, this took me 15 hours over multiple days. Work with me here!
 
 ### Resources
 I've dowloaded all the files from <http://www.st-minutiae.com/resources/scripts/>
