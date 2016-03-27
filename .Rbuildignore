@@ -1,0 +1,15 @@
+^aanwijzingen$
+^data-raw/$
+^logs\.txt$
+^online regex tool \.url$
+^R/basic_operations\.R$
+^R/imdbsupplement\.R$
+^R/loopjemetpunt\.R$
+^R/savingfiles\.R$
+^R/textanalyses\.R$
+^R/textmining\.R$
+^data/all_episodes_TNG\.csv$
+^data/all_episodes_TNG\.Rdata$
+^data/TNG\.csv$
+^data/TNG\.RData$
+^data2/$
